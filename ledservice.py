@@ -24,7 +24,7 @@ def display_png(img_filename):
     clear_matrix()
     image = Image.open(path)
     image.load()
-    matrix.SetImage(image.im.id, 1, 1)
+    matrix.SetImage(image.im.id, 0, 0)
     return 'success'
 
 
