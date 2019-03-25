@@ -5,11 +5,18 @@ import os
 import redis
 from PIL import Image
 
-from rgbmatrix import Adafruit_RGBmatrix
+from rgbmatrix import RGBMatrix, RGBMatrixOptions
 
 IMAGES_DIR = '/tmp/ledweb_img'
 
-matrix = Adafruit_RGBmatrix(32, 2)
+options = RGBMatrixOptions()
+options.rows = 32
+options.cols = 64
+options.chain_length = 1
+options.parallel = 1
+options.hardware_mapping = 'adafruit-hat-pwm'
+options.gpio_slowdown = 2
+matrix = RGBMatrix(options=options)
 
 
 def clear_matrix():
@@ -24,7 +31,7 @@ def display_png(img_filename):
     clear_matrix()
     image = Image.open(path)
     image.load()
-    matrix.SetImage(image.im.id, 0, 0)
+    matrix.SetImage(image.convert('RGB'))
     return 'success'
 
 
