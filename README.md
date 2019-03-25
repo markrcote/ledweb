@@ -41,6 +41,7 @@ contains something like this:
 [Unit]
 Description=uWSGI instance to serve ledweb
 After=network.target
+Wants=redis.service
 
 [Service]
 User=pi
@@ -67,19 +68,24 @@ location /led {
 }
 ```
 
-Unfortunately, my attempts at running `ledservice.py` as a systemd
-service have resulted in my Raspberry Pi locking up shortly after the
-service has started.  I'm guessing it's somehow related to execution
-environment, but as of yet I have been unable to figure out the cause.
-For now, I run the service in a screen session, as root, from the
-`rpi-rgb-led-matrix` directory (see note above about why we have to
-run from this directory), via `venv/bin/python ledservice.py` (replace
-`venv/bin` with your virtualenv's `bin` directory if installed
-somewhere other than `venv`).
+Similarly, you can set up a systemd service for `ledservice.py`.  Note that
+it must run as root to be able to talk to the LED panel.
 
-Unfortunately this means that `ledservice.py` has to be started
-manually after a reboot.  Perhaps switching to the main
-rpi-rgb-led-matrix codebase will fix this.
+```
+[Unit]
+Description=Redis-backed service to control an LED matrix
+Wants=redis.service
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=<path to ledweb directory>
+Environment="PATH=<path to bin/ directory of ledservice's virtualenv>"
+ExecStart==<path to bin/ directory of ledservices's virtualenv>/python ledservice.py
+
+[Install]
+WantedBy=multi-user.target
+```
 
 [dependency]: https://github.com/adafruit/rpi-rgb-led-matrix
 [64x32 RGB LED matrix]: https://www.adafruit.com/product/2279
