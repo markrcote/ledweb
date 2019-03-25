@@ -19,15 +19,9 @@ There are two main components and some auxiliary files:
 * `requirements_ledweb.txt`, `requirements_ledservice.txt`: Python
   packages required for the respective services.
 
-Because I followed Adafruit's great [tutorial][] on setting up their
-LED matrices, `ledservice.py` currently requires Adafruit's [fork][]
-of Henner Zeller's [rpi-rgb-led-matrix][] library for controlling RGB
-LED displays.  This fork was created 4 years ago (!) in order to add
-basic Python support, without proper packaging.  Hence,
-`ledservice.py` has to run within the `rpi-rgb-led-matrix` directory;
-copy it and `requirements_ledservice.txt` into that directory.  At
-some point, I will update this code to use the newer, more structured
-Python support in the main codebase.
+This app depends on a newish version of Henner Zeller's [rpi-rgb-led-matrix][]
+library.  See in particular the part about building and installing
+the [Python extension][].
 
 Both `ledweb.py` and `ledservice.py` require a number of other Python
 packages.  You'll probably want to use virtualenvs and install all
@@ -83,7 +77,6 @@ rpi-rgb-led-matrix codebase will fix this.
 
 [dependency]: https://github.com/adafruit/rpi-rgb-led-matrix
 [64x32 RGB LED matrix]: https://www.adafruit.com/product/2279
-[tutorial]: https://learn.adafruit.com/adafruit-rgb-matrix-plus-real-time-clock-hat-for-raspberry-pi
-[fork]: https://github.com/adafruit/rpi-rgb-led-matrix
 [rpi-rgb-led-matrix]: https://github.com/hzeller/rpi-rgb-led-matrix
+[Python extension]: https://github.com/hzeller/rpi-rgb-led-matrix/tree/master/bindings/python
 [Raspbian]: https://www.raspbian.org/
