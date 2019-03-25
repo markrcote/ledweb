@@ -25,7 +25,13 @@ the [Python extension][].
 
 Both `ledweb.py` and `ledservice.py` require a number of other Python
 packages.  You'll probably want to use virtualenvs and install all
-requirements in there.
+requirements in there.  Note that because you likely built the
+`rgbmatrix` package locally, you'll have to use the
+`--system-site-packages` argument to `virtualenv`.  You may want to
+install the rest of the requirements with `pip -I` so that it
+will not use local copies for anything else.  You may also wish to
+create separate virtualenvs for `ledweb.py` and `ledservice.py`,
+since the latter has to run as root.
 
 You can run `ledweb.py` as a systemd service (e.g. for [Raspbian][])
 by creating a file, `/etc/systemd/system/ledweb.service`, which

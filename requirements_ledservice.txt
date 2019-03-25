@@ -1,4 +1,3 @@
 Pillow==5.1.0
 redis==2.10.6
-rgbmatrix=0.0.1
 RPi.GPIO==0.6.5
