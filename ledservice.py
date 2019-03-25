@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import os
+import time
 
 import redis
 from PIL import Image
@@ -45,7 +46,12 @@ def display_png(img_filename):
 def loop():
     cli = redis.from_url('redis://localhost:6379')
     while True:
-        msg = cli.brpop(['matrix'])
+        try:
+            msg = cli.brpop(['matrix'])
+        except redis.exceptions.ConnectionError:
+            print 'failed to connect to redis'
+            time.sleep(5)
+            continue
         cmd = msg[1].split()
         print 'got cmd: {}'.format(cmd)
         if cmd[0] == 'clear':
