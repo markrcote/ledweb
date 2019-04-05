@@ -63,10 +63,11 @@ You can then serve the app from NGINX with a config entry like this:
 location /led {
         include uwsgi_params;
         uwsgi_pass unix:<path to ledweb directory>/ledweb.sock;
-        uwsgi_param SCRIPT_NAME /led;
-        uwsgi_modifier1 30;
 }
 ```
+
+Note that if you serve this app at a different path, you will also have to
+update the `mount` variable in `ledweb.ini`.
 
 Similarly, you can set up a systemd service for `ledservice.py`.  Note that
 it must run as root to be able to talk to the LED panel.
