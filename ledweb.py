@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import logging
-import os.path
+import os
 
 import redis
 from flask import (
@@ -12,7 +12,8 @@ from flask import (
 from werkzeug.utils import secure_filename
 
 ALLOWED_EXTENSIONS = set(['png'])
-IMAGES_DIR = '/tmp/ledweb_img'
+IMAGES_DIR = os.getenv('LEDWEB_IMAGES_DIR', '/tmp/ledweb_img')
+MAX_NUM_IMAGES = int(os.getenv('LEDWEB_MAX_NUM_IMAGES', 100))
 REDIS_QUEUE = 'matrix'
 
 application = Flask(__name__)
@@ -47,6 +48,14 @@ def upload_file():
 
     filename = secure_filename(file.filename)
     file.save(os.path.join(application.config['UPLOAD_FOLDER'], filename))
+
+    # Trim files if needed.
+    saved_files = [os.path.join(IMAGES_DIR, x) for x in os.listdir(IMAGES_DIR)]
+    # Order oldest to newest.
+    saved_files.sort(cmp=lambda x, y: int(os.stat(y).st_mtime) - int(os.stat(x).st_mtime))
+    while len(saved_files) > MAX_NUM_IMAGES:
+        os.remove(saved_files.pop())
+
     return 'success'
 
 
