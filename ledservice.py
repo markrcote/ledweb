@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 import os
 import time
@@ -49,16 +49,18 @@ def loop():
         try:
             msg = cli.brpop(['matrix'])
         except redis.exceptions.ConnectionError:
-            print 'failed to connect to redis'
+            print('failed to connect to redis')
             time.sleep(5)
             continue
-        cmd = msg[1].split()
-        print 'got cmd: {}'.format(cmd)
+        cmd = msg[1].decode('utf-8').split()
+        print('got cmd: {}'.format(cmd))
         if cmd[0] == 'clear':
             clear_matrix()
         elif cmd[0] == 'display':
-            print 'displaying {}'.format(cmd[1])
+            print('displaying {}'.format(cmd[1]))
             display_png(cmd[1])
+        else:
+            print('unknown command')
 
 
 if __name__ == '__main__':

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 import logging
 import os
@@ -11,7 +11,7 @@ from flask import (
 )
 from werkzeug.utils import secure_filename
 
-ALLOWED_EXTENSIONS = set(['png'])
+ALLOWED_EXTENSIONS = {'png'}
 IMAGES_DIR = os.getenv('LEDWEB_IMAGES_DIR', '/tmp/ledweb_img')
 MAX_NUM_IMAGES = int(os.getenv('LEDWEB_MAX_NUM_IMAGES', 100))
 REDIS_QUEUE = 'matrix'
@@ -52,7 +52,8 @@ def upload_file():
     # Trim files if needed.
     saved_files = [os.path.join(IMAGES_DIR, x) for x in os.listdir(IMAGES_DIR)]
     # Order oldest to newest.
-    saved_files.sort(cmp=lambda x, y: int(os.stat(y).st_mtime) - int(os.stat(x).st_mtime))
+    saved_files.sort(key=lambda x: int(os.stat(x).st_mtime))
+    saved_files.reverse()
     while len(saved_files) > MAX_NUM_IMAGES:
         os.remove(saved_files.pop())
 
@@ -61,13 +62,13 @@ def upload_file():
 
 @application.route('/display/<img_filename>', methods=['POST'])
 def display(img_filename):
-    cli.lpush(REDIS_QUEUE, 'display {}'.format(img_filename))
+    cli.lpush(REDIS_QUEUE, 'display {}'.format(img_filename).encode('utf-8'))
     return 'ok  '
 
 
 @application.route('/clear', methods=['POST'])
 def clear():
-    cli.lpush(REDIS_QUEUE, 'clear')
+    cli.lpush(REDIS_QUEUE, 'clear'.encode('utf-8'))
     return 'ok'
 
 

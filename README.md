@@ -1,7 +1,7 @@
 # ledweb: A web service for controlling an LED matrix :bulb:
 
 This is a Python web service to control an LED matrix such as
-Adafruit's [64x32 RGB LED matrix][].
+Adafruit's [64x32 RGB LED matrix][].  It requires Python 3.
 
 This app is released under the GPLv2 because its main [dependency][]
 is also released under the GPLv2.
