@@ -8,7 +8,7 @@ from PIL import Image
 
 from rgbmatrix import RGBMatrix, RGBMatrixOptions
 
-IMAGES_DIR = '/tmp/ledweb_img'
+IMAGES_DIR = os.getenv('LEDWEB_IMAGES_DIR', '/tmp/ledweb_img')
 
 options = RGBMatrixOptions()
 options.rows = 32
