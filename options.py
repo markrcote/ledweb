@@ -1,7 +1,7 @@
 from rgbmatrix import RGBMatrixOptions
 
 
-def ledoptions():
+def matrix_options():
     options = RGBMatrixOptions()
     options.rows = 32
     options.cols = 64
