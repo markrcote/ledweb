@@ -64,7 +64,7 @@ def display(img_filename):
         options.REDIS_QUEUE,
         'display image {}'.format(img_filename).encode('utf-8')
     )
-    return 'ok  '
+    return 'ok'
 
 
 @application.route('/clear', methods=['POST'])
