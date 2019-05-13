@@ -8,11 +8,9 @@ from PIL import Image
 
 from rgbmatrix import RGBMatrix, graphics
 
-from options import matrix_options
+import options
 
-IMAGES_DIR = os.getenv('LEDWEB_IMAGES_DIR', '/tmp/ledweb_img')
-
-matrix = RGBMatrix(options=matrix_options())
+matrix = RGBMatrix(options=options.matrix_options())
 
 
 def clear_matrix():
@@ -21,7 +19,7 @@ def clear_matrix():
 
 
 def display_png(img_filename):
-    path = os.path.join(IMAGES_DIR, os.path.basename(img_filename))
+    path = os.path.join(options.IMAGES_DIR, os.path.basename(img_filename))
     if not os.path.isfile(path):
         return 'notfound'
     clear_matrix()
