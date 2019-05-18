@@ -62,7 +62,7 @@ def upload_file():
 def display(img_filename):
     cli.lpush(
         options.REDIS_QUEUE,
-        'display {}'.format(img_filename).encode('utf-8')
+        'display image {}'.format(img_filename).encode('utf-8')
     )
     return 'ok  '
 
