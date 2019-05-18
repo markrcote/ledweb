@@ -144,7 +144,10 @@ class LedService:
                     self.switch_mode((self.current_mode_idx + 1) % len(self.modes), [])
             elif cmd[0] == 'off' or cmd[0] == 'clear':
                 self.reset()
-            elif self.current_mode and cmd[0] == self.current_mode.MODE_NAME:
+            elif self.current_mode and (
+                cmd[0] == self.current_mode.MODE_NAME or
+                cmd[0] == 'mode'
+            ):
                 self.current_mode.handle_command(cmd[1:])
             elif cmd[0] in self.mode_map:
                 self.switch_mode(self.mode_map[cmd[0]], cmd[1:])
