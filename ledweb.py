@@ -17,7 +17,7 @@ application = Flask(__name__)
 application.config['UPLOAD_FOLDER'] = options.IMAGES_DIR
 application.config['MAX_CONTENT_LENGTH'] = 1024 * 1024  # probably too high
 
-cli = redis.from_url('redis://localhost')
+cli = redis.from_url(options.REDIS_URL)
 
 if not os.path.exists(options.IMAGES_DIR):
     os.mkdir(options.IMAGES_DIR)

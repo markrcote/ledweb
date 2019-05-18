@@ -153,7 +153,7 @@ class LedService:
 
 
 def main():
-    redis_cli = redis.from_url('redis://localhost:6379')
+    redis_cli = redis.from_url(options.REDIS_URL)
     matrix = RGBMatrix(options=options.matrix_options())
 
     led_service = LedService(matrix, redis_cli, [DisplayMode, TimeMode])
