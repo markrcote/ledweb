@@ -49,6 +49,17 @@ class DisplayMode(LedServiceMode):
         self.matrix.SetImage(image.convert('RGB'))
         self.current_image = img_filename
 
+    def next_image(self, incr):
+        cur_images = self.images
+        try:
+            next_image = cur_images[
+                (cur_images.index(self.current_image) + incr)
+                % len(cur_images)
+            ]
+        except ValueError:
+            next_image = cur_images[0]
+        self.display_image(next_image)
+
     def handle_command(self, cmd):
         if not self.images:
             return
@@ -57,15 +68,9 @@ class DisplayMode(LedServiceMode):
         elif cmd[0] == 'image':
             self.display_image(cmd[1])
         elif cmd[0] == 'next':
-            cur_images = self.images
-            try:
-                next_image = cur_images[
-                    (cur_images.index(self.current_image) + 1)
-                    % len(cur_images)
-                ]
-            except ValueError:
-                next_image = cur_images[0]
-            self.display_image(next_image)
+            self.next_image(1)
+        elif cmd[0] == 'prev':
+            self.next_image(-1)
         return True
 
 
@@ -129,6 +134,13 @@ class LedService:
         self.current_mode_idx = mode_idx
         self.current_mode = self.modes[self.current_mode_idx](self.matrix, cmd)
 
+    def next_mode(self, incr):
+        if self.modes:
+            self.switch_mode(
+                (self.current_mode_idx + incr) % len(self.modes),
+                []
+            )
+
     def loop(self):
         while True:
             if self.current_mode and self.current_mode.LOOP_SLEEP:
@@ -140,8 +152,9 @@ class LedService:
             cmd = msg[1].decode('utf-8').split()
             print('got cmd: {}'.format(cmd))
             if cmd[0] == 'next_mode':
-                if self.modes:
-                    self.switch_mode((self.current_mode_idx + 1) % len(self.modes), [])
+                self.next_mode(1)
+            elif cmd[0] == 'prev_mode':
+                self.next_mode(-1)
             elif cmd[0] == 'off' or cmd[0] == 'clear':
                 self.reset()
             elif self.current_mode and (
