@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
+import http.client
+import json
 import os
 import time
+import urllib.request
 
 import redis
 from PIL import Image
@@ -79,6 +82,8 @@ class TimeMode(LedServiceMode):
 
     MODE_NAME = 'time'
     LOOP_SLEEP = 0.001
+    WEATHER_POLL_SECONDS = 60*10
+    OPEN_WEATHER_API_URL = 'http://api.openweathermap.org/data/2.5/weather?id={city_id}&APPID={app_id}'
 
     def setup(self):
         self.offscreen = self.matrix.CreateFrameCanvas()
@@ -86,14 +91,45 @@ class TimeMode(LedServiceMode):
         self.font.LoadFont('fonts/5x7.bdf')
         self.text_colour = graphics.Color(0, 255, 255)
 
+        self.current_temp = None
         self.next_time = time.time()
+        self.next_weather = time.time()
         self.prepare_offscreen()
+
+    def get_weather(self):
+        print('getting weather')
+        if (not options.OPEN_WEATHER_API_KEY
+                or not options.OPEN_WEATHER_CITY_ID):
+            print('OpenWeather API not configured.')
+            return
+
+        url = self.OPEN_WEATHER_API_URL.format(
+            city_id=options.OPEN_WEATHER_CITY_ID,
+            app_id=options.OPEN_WEATHER_API_KEY
+        )
+
+        response = None
+
+        try:
+            response = json.loads(urllib.request.urlopen(url).read().decode())
+        except http.client.HTTPException as e:
+            print('Error loading OpenWeather API: {}'.format(e))
+        except ValueError:
+            print('Invalid response from OpenWeather API')
+
+        if not response:
+            return
+
+        self.current_temp = int(response['main']['temp'] - 273.15)
 
     def prepare_offscreen(self):
         t = time.localtime(self.next_time)
         ts = time.strftime('%I:%M %p', t)
         if ts[0].startswith('0'):
             ts = ' {}'.format(ts[1:])
+
+        temps = ('{}°'.format(self.current_temp)
+                 if self.current_temp is not None else '')
 
         self.offscreen.Clear()
         graphics.DrawText(
@@ -105,9 +141,25 @@ class TimeMode(LedServiceMode):
             ts
         )
 
+        if temps:
+            graphics.DrawText(
+                self.offscreen,
+                self.font,
+                44,
+                28,
+                self.text_colour,
+                temps
+            )
+
     def iterate(self):
-        if time.time() < self.next_time:
+        now = time.time()
+
+        if now < self.next_time:
             return
+
+        if now >= self.next_weather:
+            self.get_weather()
+            self.next_weather += self.WEATHER_POLL_SECONDS
 
         self.offscreen = self.matrix.SwapOnVSync(self.offscreen)
         self.next_time += 1

@@ -5,6 +5,8 @@ IMAGES_DIR = os.getenv('LEDWEB_IMAGES_DIR', '/var/run/ledweb')
 MAX_NUM_IMAGES = int(os.getenv('LEDWEB_MAX_NUM_IMAGES', 100))
 REDIS_URL = 'redis://localhost:6379'
 REDIS_QUEUE = 'matrix'
+OPEN_WEATHER_API_KEY = os.getenv('LEDWEB_OPEN_WEATHER_API_KEY', None)
+OPEN_WEATHER_CITY_ID = os.getenv('LEDWEB_OPEN_WEATHER_CITY_ID', None)
 
 
 def matrix_options():
