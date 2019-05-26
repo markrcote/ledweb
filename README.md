@@ -8,10 +8,10 @@ is also released under the GPLv2.
 
 There are two main components and some auxiliary files:
 
-* `ledservice.py`: This is a service that listens for messages from a
+* `ledservice.py`: Service that listens for messages from a
   Redis server and controls the LED matrix.
 
-* `ledweb.py`: This is a Flask app that supports uploading of images
+* `ledweb.py`: Flask app that supports uploading of images
   and passes commands to ledservice.
 
 * `remotecontrol.py`: Service that receives commands from a remote
