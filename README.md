@@ -14,6 +14,10 @@ There are two main components and some auxiliary files:
 * `ledweb.py`: This is a Flask app that supports uploading of images
   and passes commands to ledservice.
 
+* `remotecontrol.py`: Service that receives commands from a remote
+  control.  This was specifically written for the [OSMC remote control][]
+  but likely works with others.
+
 * `wsgi.py`, `ledweb.ini`: Simple NGINX WSGI server for ledweb.
 
 * `requirements_ledweb.txt`, `requirements_ledservice.txt`: Python
@@ -94,6 +98,7 @@ WantedBy=multi-user.target
 
 [dependency]: https://github.com/adafruit/rpi-rgb-led-matrix
 [64x32 RGB LED matrix]: https://www.adafruit.com/product/2279
+[OSMC remote control]: https://osmc.tv/store/product/osmc-remote-control/
 [rpi-rgb-led-matrix]: https://github.com/hzeller/rpi-rgb-led-matrix
 [Python extension]: https://github.com/hzeller/rpi-rgb-led-matrix/tree/master/bindings/python
 [Raspbian]: https://www.raspbian.org/
