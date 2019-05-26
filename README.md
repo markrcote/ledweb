@@ -35,7 +35,7 @@ since the latter has to run as root.
 
 Both services require access to a directory to hold images.  By
 default this is `/var/run/ledweb/`.  You'll have to create that
-file and ensure it is readable and writeable by both services.
+directory and ensure it is readable and writeable by both services.
 
 You can run `ledweb.py` as a systemd service (e.g. for [Raspbian][])
 by creating a file, `/etc/systemd/system/ledweb.service`, which
