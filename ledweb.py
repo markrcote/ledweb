@@ -23,6 +23,13 @@ if not os.path.exists(options.IMAGES_DIR):
     os.mkdir(options.IMAGES_DIR)
 
 
+def send_cmd(cmd):
+    cli.lpush(
+        options.REDIS_QUEUE,
+        cmd.encode('utf-8')
+    )
+
+
 def allowed_file(filename):
     return ('.' in filename and
             filename.rsplit('.', 1)[1].lower() in options.ALLOWED_EXTENSIONS)
@@ -60,16 +67,13 @@ def upload_file():
 
 @application.route('/display/<img_filename>', methods=['POST'])
 def display(img_filename):
-    cli.lpush(
-        options.REDIS_QUEUE,
-        'display image {}'.format(img_filename).encode('utf-8')
-    )
+    send_cmd('display image {}'.format(img_filename))
     return 'ok'
 
 
 @application.route('/clear', methods=['POST'])
 def clear():
-    cli.lpush(options.REDIS_QUEUE, 'clear'.encode('utf-8'))
+    send_cmd('clear')
     return 'ok'
 
 
