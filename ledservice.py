@@ -193,11 +193,11 @@ class TimeMode(LedServiceMode):
 
 class LedService:
 
-    def __init__(self, matrix, redis_cli, modes):
+    def __init__(self, matrix, redis_cli, mode_classes):
         self.matrix = matrix
         self.redis_cli = redis_cli
-        self.modes = modes
-        self.mode_map = {mode.MODE_NAME: i for i, mode in enumerate(self.modes)}
+        self.mode_classes = mode_classes
+        self.mode_map = {mode.MODE_NAME: i for i, mode in enumerate(self.mode_classes)}
         self.reset()
 
     def reset(self):
@@ -209,17 +209,19 @@ class LedService:
         self.matrix.Clear()
         self.current_mode = None
         self.current_mode_idx = mode_idx
-        self.current_mode = self.modes[self.current_mode_idx](self.matrix, cmd)
+        self.current_mode = self.mode_classes[self.current_mode_idx](self.matrix, cmd)
 
     def next_mode(self, incr):
-        if self.modes:
-            if self.current_mode_idx is None:
-                new_mode_idx = 0 if incr > 0 else len(self.modes) - 1
-            else:
-                new_mode_idx = self.current_mode_idx + incr
-            new_mode_idx %= len(self.modes)
+        if not self.mode_classes:
+            return
 
-            self.switch_mode(new_mode_idx, [])
+        if self.current_mode_idx is None:
+            new_mode_idx = 0 if incr > 0 else len(self.mode_classes) - 1
+        else:
+            new_mode_idx = self.current_mode_idx + incr
+        new_mode_idx %= len(self.mode_classes)
+
+        self.switch_mode(new_mode_idx, [])
 
     def loop(self):
         while True:
@@ -243,6 +245,8 @@ class LedService:
             ):
                 self.current_mode.handle_command(cmd[1:])
             elif cmd[0] in self.mode_map:
+                # FIXME: Switch to mode, then issue command.  This isolates
+                # commands from mode switches.
                 self.switch_mode(self.mode_map[cmd[0]], cmd[1:])
             else:
                 print('unknown command {}'.format(cmd))
