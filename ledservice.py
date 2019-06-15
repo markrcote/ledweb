@@ -129,9 +129,6 @@ class TimeMode(LedServiceMode):
             ts = ' {}'.format(ts[1:])
         month_day = time.strftime('%a %e %b')
 
-        temps = ('{}°'.format(int(self.weather['main']['temp'] - 273.15))
-                 if self.weather is not None else '')
-
         self.offscreen.Clear()
         graphics.DrawText(
             self.offscreen,
@@ -151,7 +148,9 @@ class TimeMode(LedServiceMode):
             month_day
         )
 
-        if temps:
+        if self.weather:
+            temps = '{}°'.format(int(self.weather['main']['temp'] - 273.15))
+
             graphics.DrawText(
                 self.offscreen,
                 self.font,
@@ -160,6 +159,22 @@ class TimeMode(LedServiceMode):
                 self.text_colour,
                 temps
             )
+
+            if 'weather' in self.weather:
+                icon_path = os.path.join(
+                    os.path.dirname(__file__),
+                    'icons',
+                    '{}.json'.format(self.weather['weather'][0]['icon'])
+                )
+
+                if os.path.exists(icon_path):
+                    icon = json.loads(open(icon_path).read())
+                    for pixel in icon:
+                        self.offscreen.SetPixel(
+                            pixel[0] + 32,
+                            pixel[1] + 20,
+                            *pixel[2:]
+                        )
 
     def iterate(self):
         now = time.time()
