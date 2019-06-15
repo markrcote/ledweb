@@ -91,7 +91,7 @@ class TimeMode(LedServiceMode):
         self.font.LoadFont('fonts/5x7.bdf')
         self.text_colour = graphics.Color(0, 255, 255)
 
-        self.current_temp = None
+        self.weather = None
         self.next_time = time.time()
         self.next_weather = time.time()
         self.prepare_offscreen()
@@ -120,7 +120,7 @@ class TimeMode(LedServiceMode):
         if not response:
             return
 
-        self.current_temp = int(response['main']['temp'] - 273.15)
+        self.weather = response
 
     def prepare_offscreen(self):
         t = time.localtime(self.next_time)
@@ -129,8 +129,8 @@ class TimeMode(LedServiceMode):
             ts = ' {}'.format(ts[1:])
         month_day = time.strftime('%a %e %b')
 
-        temps = ('{}°'.format(self.current_temp)
-                 if self.current_temp is not None else '')
+        temps = ('{}°'.format(int(self.weather['main']['temp'] - 273.15))
+                 if self.weather is not None else '')
 
         self.offscreen.Clear()
         graphics.DrawText(
