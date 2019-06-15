@@ -127,6 +127,7 @@ class TimeMode(LedServiceMode):
         ts = time.strftime('%I:%M %p', t)
         if ts[0].startswith('0'):
             ts = ' {}'.format(ts[1:])
+        month_day = time.strftime('%a %e %b')
 
         temps = ('{}°'.format(self.current_temp)
                  if self.current_temp is not None else '')
@@ -139,6 +140,15 @@ class TimeMode(LedServiceMode):
             self.font.baseline + 2,
             self.text_colour,
             ts
+        )
+
+        graphics.DrawText(
+            self.offscreen,
+            self.font,
+            0,
+            self.font.baseline * 2 + 4,
+            self.text_colour,
+            month_day
         )
 
         if temps:
