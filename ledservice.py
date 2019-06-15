@@ -134,7 +134,7 @@ class TimeMode(LedServiceMode):
             self.offscreen,
             self.font,
             0,
-            self.font.baseline + 2,
+            self.font.baseline + 3,
             self.text_colour,
             ts
         )
@@ -143,7 +143,7 @@ class TimeMode(LedServiceMode):
             self.offscreen,
             self.font,
             0,
-            self.font.baseline * 2 + 4,
+            self.font.baseline * 2 + 6,
             self.text_colour,
             month_day
         )
