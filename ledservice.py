@@ -16,12 +16,12 @@ import options
 
 class LedServiceMode:
     MODE_NAME = None
-    LOOP_SLEEP = None
+    BACKGROUND_POLL_TIME = None
 
-    def __init__(self, matrix, cmd):
+    def __init__(self, matrix):
         self.matrix = matrix
         self.setup()
-        self.handle_command(cmd)
+        self.last_bg_poll = None
 
     def setup(self):
         pass
@@ -30,6 +30,19 @@ class LedServiceMode:
         return True
 
     def iterate(self):
+        pass
+
+    def background_poll(self):
+        if self.BACKGROUND_POLL_TIME is None:
+            return
+
+        now = time.time()
+        if (not self.last_bg_poll or
+                now - self.last_bg_poll >= self.BACKGROUND_POLL_TIME):
+            self.last_bg_poll = now
+            self.background_job()
+
+    def background_job(self):
         pass
 
 
@@ -81,7 +94,7 @@ class TimeMode(LedServiceMode):
     # Adapted from https://github.com/hzeller/rpi-rgb-led-matrix/blob/master/examples-api-use/clock.cc.
 
     MODE_NAME = 'time'
-    LOOP_SLEEP = 0.001
+    BACKGROUND_POLL_TIME = 10
     WEATHER_POLL_SECONDS = 60*10
     OPEN_WEATHER_API_URL = 'http://api.openweathermap.org/data/2.5/weather?id={city_id}&APPID={app_id}'
 
@@ -94,9 +107,13 @@ class TimeMode(LedServiceMode):
         self.weather = None
         self.next_time = time.time()
         self.next_weather = time.time()
-        self.prepare_offscreen()
 
-    def get_weather(self):
+    def get_weather(self, now):
+        if now < self.next_weather:
+            return
+
+        self.next_weather += self.WEATHER_POLL_SECONDS
+
         print('getting weather')
         if (not options.OPEN_WEATHER_API_KEY
                 or not options.OPEN_WEATHER_CITY_ID):
@@ -121,6 +138,9 @@ class TimeMode(LedServiceMode):
             return
 
         self.weather = response
+
+    def background_job(self):
+        self.get_weather(time.time())
 
     def prepare_offscreen(self):
         t = time.localtime(self.next_time)
@@ -182,9 +202,7 @@ class TimeMode(LedServiceMode):
         if now < self.next_time:
             return
 
-        if now >= self.next_weather:
-            self.get_weather()
-            self.next_weather += self.WEATHER_POLL_SECONDS
+        self.get_weather(now)
 
         self.offscreen = self.matrix.SwapOnVSync(self.offscreen)
         self.next_time += 1
@@ -192,12 +210,14 @@ class TimeMode(LedServiceMode):
 
 
 class LedService:
+    LOOP_SLEEP = 0.001
 
     def __init__(self, matrix, redis_cli, modes):
         self.matrix = matrix
         self.redis_cli = redis_cli
-        self.modes = modes
-        self.mode_map = {mode.MODE_NAME: i for i, mode in enumerate(self.modes)}
+        self.modes = [x(self.matrix) for x in modes]
+        self.mode_map = {mode.MODE_NAME: i for i, mode in
+                         enumerate(self.modes)}
         self.reset()
 
     def reset(self):
@@ -209,7 +229,8 @@ class LedService:
         self.matrix.Clear()
         self.current_mode = None
         self.current_mode_idx = mode_idx
-        self.current_mode = self.modes[self.current_mode_idx](self.matrix, cmd)
+        self.current_mode = self.modes[self.current_mode_idx]
+        self.current_mode.handle_command(cmd)
 
     def next_mode(self, incr):
         if self.modes:
@@ -223,10 +244,12 @@ class LedService:
 
     def loop(self):
         while True:
-            if self.current_mode and self.current_mode.LOOP_SLEEP:
-                while self.redis_cli.llen(options.REDIS_QUEUE) == 0:
+            while self.redis_cli.llen(options.REDIS_QUEUE) == 0:
+                if self.current_mode:
                     self.current_mode.iterate()
-                    time.sleep(self.current_mode.LOOP_SLEEP)
+                for mode in self.modes:
+                    mode.background_poll()
+                time.sleep(self.LOOP_SLEEP)
             msg = self.redis_cli.brpop([options.REDIS_QUEUE])
 
             cmd = msg[1].decode('utf-8').split()
