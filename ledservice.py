@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 
-import http.client
 import json
 import os
 import time
-import urllib.request
 
 import redis
 from PIL import Image
@@ -12,6 +10,7 @@ from PIL import Image
 from rgbmatrix import RGBMatrix, graphics
 
 import options
+from weather import OpenWeather
 
 
 class LedServiceMode:
@@ -100,9 +99,6 @@ class TimeMode(LedServiceMode):
     MODE_NAME = 'time'
     BACKGROUND_POLL_TIME = 10
     WEATHER_POLL_SECONDS = 60*10
-    OPEN_WEATHER_API_URL = 'http://api.openweathermap.org/data/2.5/'
-    WEATHER_API_URL_PATH = 'weather?id={city_id}&APPID={app_id}'
-    FORECAST_API_URL_PATH = 'forecast?id={city_id}&APPID={app_id}'
 
     def setup(self):
         self.offscreen = self.matrix.CreateFrameCanvas()
@@ -110,46 +106,22 @@ class TimeMode(LedServiceMode):
         self.font.LoadFont('fonts/5x7.bdf')
         self.text_colour = graphics.Color(0, 255, 255)
 
-        self.weather = None
+        self.weather = OpenWeather(
+            options.OPEN_WEATHER_API_KEY,
+            options.OPEN_WEATHER_CITY_ID
+        )
         self.next_time = time.time()
         self.next_weather = time.time()
 
-    def get_weather_json(self, url_path):
-        url = self.OPEN_WEATHER_API_URL + url_path.format(
-            city_id=options.OPEN_WEATHER_CITY_ID,
-            app_id=options.OPEN_WEATHER_API_KEY
-        )
-
-        response = None
-
-        try:
-            response = json.loads(urllib.request.urlopen(url).read().decode())
-        except http.client.HTTPException as e:
-            print('Error loading OpenWeather API: {}'.format(e))
-        except ValueError:
-            print('Invalid response from OpenWeather API')
-
-        return response
-
-    def get_weather(self, now):
-        if now < self.next_weather:
+    def background_job(self):
+        if time.time() < self.next_weather:
             return
 
         self.next_weather += self.WEATHER_POLL_SECONDS
 
-        print('getting weather')
-        if (not options.OPEN_WEATHER_API_KEY
-                or not options.OPEN_WEATHER_CITY_ID):
-            print('OpenWeather API not configured.')
-            return
+        self.weather.get_weather()
 
-        self.weather = self.get_weather_json(self.WEATHER_API_URL_PATH)
-        self.forecast = self.get_weather_json(self.FORECAST_API_URL_PATH)
-
-    def background_job(self):
-        self.get_weather(time.time())
-
-    def prepare_offscreen(self):
+    def prepare_current_offscreen(self):
         t = time.localtime(self.next_time)
         ts = time.strftime('%I:%M %p', t)
         if ts[0].startswith('0'):
@@ -175,8 +147,8 @@ class TimeMode(LedServiceMode):
             month_day
         )
 
-        if self.weather:
-            temps = '{}°'.format(int(self.weather['main']['temp'] - 273.15))
+        if self.weather.weather:
+            temps = '{}°'.format(self.weather.current_temp())
 
             graphics.DrawText(
                 self.offscreen,
@@ -187,11 +159,13 @@ class TimeMode(LedServiceMode):
                 temps
             )
 
-            if 'weather' in self.weather:
+            weather_icon = self.weather.current_weather_icon()
+
+            if weather_icon:
                 icon_path = os.path.join(
                     os.path.dirname(__file__),
                     'icons',
-                    '{}.json'.format(self.weather['weather'][0]['icon'])
+                    '{}.json'.format(weather_icon)
                 )
 
                 if os.path.exists(icon_path):
@@ -204,20 +178,22 @@ class TimeMode(LedServiceMode):
                         )
 
     def iterate(self):
+        '''Refreshes time.
+
+        Weather refreshing is handled by the background job.
+        '''
         now = time.time()
 
         if now < self.next_time:
             return
 
-        self.get_weather(now)
-
         self.offscreen = self.matrix.SwapOnVSync(self.offscreen)
         self.next_time += 1
-        self.prepare_offscreen()
+        self.prepare_current_offscreen()
 
     def activate(self):
         self.next_time = time.time()
-        self.prepare_offscreen()
+        self.prepare_current_offscreen()
 
 
 class LedService:
