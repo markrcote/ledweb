@@ -100,7 +100,9 @@ class TimeMode(LedServiceMode):
     MODE_NAME = 'time'
     BACKGROUND_POLL_TIME = 10
     WEATHER_POLL_SECONDS = 60*10
-    OPEN_WEATHER_API_URL = 'http://api.openweathermap.org/data/2.5/weather?id={city_id}&APPID={app_id}'
+    OPEN_WEATHER_API_URL = 'http://api.openweathermap.org/data/2.5/'
+    WEATHER_API_URL_PATH = 'weather?id={city_id}&APPID={app_id}'
+    FORECAST_API_URL_PATH = 'forecast?id={city_id}&APPID={app_id}'
 
     def setup(self):
         self.offscreen = self.matrix.CreateFrameCanvas()
@@ -112,19 +114,8 @@ class TimeMode(LedServiceMode):
         self.next_time = time.time()
         self.next_weather = time.time()
 
-    def get_weather(self, now):
-        if now < self.next_weather:
-            return
-
-        self.next_weather += self.WEATHER_POLL_SECONDS
-
-        print('getting weather')
-        if (not options.OPEN_WEATHER_API_KEY
-                or not options.OPEN_WEATHER_CITY_ID):
-            print('OpenWeather API not configured.')
-            return
-
-        url = self.OPEN_WEATHER_API_URL.format(
+    def get_weather_json(self, url_path):
+        url = self.OPEN_WEATHER_API_URL + url_path.format(
             city_id=options.OPEN_WEATHER_CITY_ID,
             app_id=options.OPEN_WEATHER_API_KEY
         )
@@ -138,10 +129,22 @@ class TimeMode(LedServiceMode):
         except ValueError:
             print('Invalid response from OpenWeather API')
 
-        if not response:
+        return response
+
+    def get_weather(self, now):
+        if now < self.next_weather:
             return
 
-        self.weather = response
+        self.next_weather += self.WEATHER_POLL_SECONDS
+
+        print('getting weather')
+        if (not options.OPEN_WEATHER_API_KEY
+                or not options.OPEN_WEATHER_CITY_ID):
+            print('OpenWeather API not configured.')
+            return
+
+        self.weather = self.get_weather_json(self.WEATHER_API_URL_PATH)
+        self.forecast = self.get_weather_json(self.FORECAST_API_URL_PATH)
 
     def background_job(self):
         self.get_weather(time.time())
