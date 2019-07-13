@@ -32,6 +32,10 @@ class LedServiceMode:
     def iterate(self):
         pass
 
+    def activate(self):
+        '''Called when this mode is foregrounded.'''
+        pass
+
     def background_poll(self):
         if self.BACKGROUND_POLL_TIME is None:
             return
@@ -208,6 +212,10 @@ class TimeMode(LedServiceMode):
         self.next_time += 1
         self.prepare_offscreen()
 
+    def activate(self):
+        self.next_time = time.time()
+        self.prepare_offscreen()
+
 
 class LedService:
     LOOP_SLEEP = 0.001
@@ -230,6 +238,7 @@ class LedService:
         self.current_mode = None
         self.current_mode_idx = mode_idx
         self.current_mode = self.modes[self.current_mode_idx]
+        self.current_mode.activate()
         self.current_mode.handle_command(cmd)
 
     def next_mode(self, incr):
