@@ -12,6 +12,17 @@ from rgbmatrix import RGBMatrix, graphics
 import options
 from weather import OpenWeather
 
+def redis_retry(func):
+    def wrapper(*arg):
+        while True:
+            try:
+                func(*arg)
+            except redis.exceptions.ConnectionError as e:
+                print('Error connecting to redis: {}'.format(e))
+                print('Sleeping for 5 seconds...')
+                time.sleep(5)
+    return wrapper
+
 
 class LedServiceMode:
     MODE_NAME = None
@@ -230,6 +241,7 @@ class LedService:
 
             self.switch_mode(new_mode_idx, [])
 
+    @redis_retry
     def loop(self):
         while True:
             while self.redis_cli.llen(options.REDIS_QUEUE) == 0:
