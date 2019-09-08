@@ -2,6 +2,7 @@
 
 import http.client
 import json
+import urllib.error
 import urllib.request
 
 
@@ -26,7 +27,7 @@ class OpenWeather:
 
         try:
             response = json.loads(urllib.request.urlopen(url).read().decode())
-        except http.client.HTTPException as e:
+        except (http.client.HTTPException, urllib.error.URLError) as e:
             print('Error loading OpenWeather API: {}'.format(e))
         except ValueError:
             print('Invalid response from OpenWeather API')
