@@ -12,6 +12,7 @@ from rgbmatrix import RGBMatrix, graphics
 import options
 from weather import OpenWeather
 
+
 def redis_retry(ex):
     def wrap(func):
         def wrapper(*arg):
