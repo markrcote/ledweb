@@ -114,6 +114,12 @@ class TimeMode(LedServiceMode):
     BACKGROUND_POLL_TIME = 10
     WEATHER_POLL_SECONDS = 60*10
 
+    SCREEN_CURRENT = 0
+
+    SCREENS = [
+        SCREEN_CURRENT
+    ]
+
     def setup(self):
         self.offscreen = self.matrix.CreateFrameCanvas()
         self.font = graphics.Font()
@@ -126,6 +132,7 @@ class TimeMode(LedServiceMode):
         )
         self.next_time = time.time()
         self.next_weather = time.time()
+        self.screen = self.SCREEN_CURRENT
 
     def background_job(self):
         if time.time() < self.next_weather:
@@ -203,11 +210,26 @@ class TimeMode(LedServiceMode):
 
         self.offscreen = self.matrix.SwapOnVSync(self.offscreen)
         self.next_time += 1
-        self.prepare_current_offscreen()
+        self.prepare_offscreen()
+
+    def prepare_offscreen(self):
+        if self.screen == self.SCREEN_CURRENT:
+            self.prepare_current_offscreen()
 
     def activate(self):
         self.next_time = time.time()
-        self.prepare_current_offscreen()
+        self.prepare_offscreen()
+
+    def handle_command(self, cmd):
+        if not cmd:
+            return True
+        elif cmd[0] == 'next':
+            self.screen += 1
+        elif cmd[0] == 'prev':
+            self.screen -= 1
+        self.screen %= len(self.SCREENS)
+        self.prepare_offscreen()
+        return True
 
 
 class LedService:
