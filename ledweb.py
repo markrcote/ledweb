@@ -71,6 +71,17 @@ def display(img_filename):
     return 'ok'
 
 
+@application.route('/delete/<img_filename>', methods=['POST'])
+def delete(img_filename):
+    '''Admittedly not very REST-y...'''
+    filename = secure_filename(img_filename)
+    full_path = os.path.join(application.config['UPLOAD_FOLDER'], filename)
+    if not os.path.exists(full_path):
+        abort(404)
+    os.unlink(full_path)
+    return 'ok'
+
+
 @application.route('/clear', methods=['POST'])
 def clear():
     send_cmd('clear')
