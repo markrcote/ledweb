@@ -2,6 +2,8 @@ class LedWebControls extends React.Component {
   constructor(props) {
     super(props);
     this.handleClearClick = this.handleClearClick.bind(this);
+    this.handleUploadClick = this.handleUploadClick.bind(this);
+    this.fileInput = React.createRef();
   }
 
   handleClearClick(e) {
@@ -9,11 +11,30 @@ class LedWebControls extends React.Component {
     fetch("/led/clear", { method: "POST" });
   }
 
+  handleUploadClick(e) {
+    e.preventDefault();
+
+    const files = this.fileInput.current.files;
+    const formData = new FormData();
+    formData.set("file", files[0], files[0].filename);
+    fetch("/led/upload", {
+      method: "POST",
+      body: formData
+    })
+    .then(data => {
+      this.props.onUpload();
+    })
+    .catch(error => {
+      console.error(error)
+    });
+  }
+
   render () {
     return (
       <div className="controls">
         <button onClick={this.handleClearClick}>Clear</button>
-        <button>Upload</button>
+        <input type="file" ref={this.fileInput} />
+        <button onClick={this.handleUploadClick}>Upload</button>
       </div>
     );
   }
@@ -92,6 +113,7 @@ class LedWebImages extends React.Component {
   constructor(props) {
     super(props);
     this.handleDeleteImage = this.handleDeleteImage.bind(this);
+    this.handleRefresh = this.handleRefresh.bind(this);
     this.state = {
       error: null,
       isLoaded: false,
@@ -99,7 +121,11 @@ class LedWebImages extends React.Component {
     };
   }
 
-  componentDidMount() {
+  fetchImages() {
+    this.setState({
+      isLoaded: false
+    });
+
     fetch("/image/")
     .then(res => res.json())
     .then(
@@ -115,9 +141,17 @@ class LedWebImages extends React.Component {
           error
         })
       }
-    )
+    );
+  }
+
+  componentDidMount() {
+    this.fetchImages();
   }
   
+  handleRefresh() {
+    this.fetchImages();
+  }
+
   handleDeleteImage(id) {
     this.setState(prevState => ({
       items: prevState.items.filter(el => el.name != id)
@@ -133,7 +167,8 @@ class LedWebImages extends React.Component {
     } else {
       return (
         <div>
-          <LedWebControls />
+          <LedWebControls
+            onUpload={this.handleRefresh} />
           <div>
             {items.map(item => (
               <LedWebImage

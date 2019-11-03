@@ -1,6 +1,6 @@
 import os
 
-ALLOWED_EXTENSIONS = {'png'}
+ALLOWED_EXTENSIONS = {'png', 'jpg'}
 IMAGES_DIR = os.getenv('LEDWEB_IMAGES_DIR', '/var/run/ledweb')
 MAX_NUM_IMAGES = int(os.getenv('LEDWEB_MAX_NUM_IMAGES', 100))
 REDIS_URL = 'redis://localhost:6379'
