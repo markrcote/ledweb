@@ -67,7 +67,10 @@ def upload_file():
 
 @application.route('/display/<img_filename>', methods=['POST'])
 def display(img_filename):
-    send_cmd('display image {}'.format(img_filename))
+    # Conversion to int will be handled by ledservice.
+    x = request.form.get('x', 0)
+    y = request.form.get('y', 0)
+    send_cmd('display image {} {} {}'.format(img_filename, x, y))
     return 'ok'
 
 
