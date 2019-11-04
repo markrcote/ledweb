@@ -82,8 +82,11 @@ class DisplayMode(LedServiceMode):
         return sorted(os.listdir(options.IMAGES_DIR))
 
     def display_image(self, img_filename, x=0, y=0):
-        x = to_int(x)
-        y = to_int(y)
+        # We want x and y to be the location in the image that is mapped to
+        # the top left of the panel.  This means offsetting by the negative
+        # values of x and y.
+        x = to_int(x) * -1
+        y = to_int(y) * -1
 
         path = os.path.join(options.IMAGES_DIR, os.path.basename(img_filename))
         if not os.path.isfile(path):
