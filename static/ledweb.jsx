@@ -45,22 +45,44 @@ class LedWebImageControls extends React.Component {
     super(props);
     this.handleDisplayClick = this.handleDisplayClick.bind(this);
     this.handleDeleteClick = this.handleDeleteClick.bind(this);
+    this.handleXChange = this.handleXChange.bind(this);
+    this.handleYChange = this.handleYChange.bind(this);
+    this.state = {x: 0, y: 0}
   }
 
   handleDisplayClick(e) {
     e.preventDefault();
-    fetch("/led/display/" + this.props.filename, { method: "POST" });
+    const formData = new FormData();
+    formData.set("x", this.state.x);
+    formData.set("y", this.state.y);
+
+    fetch("/led/display/" + this.props.filename, {
+      method: "POST",
+      body: formData
+    });
   }
 
   handleDeleteClick(e) {
     this.props.onDelete();
   }
 
+  handleXChange(e) {
+    this.setState({x: event.target.value});
+  }
+
+  handleYChange(e) {
+    this.setState({y: event.target.value});
+  }
+
   render () {
+    const x = this.state.x;
+    const y = this.state.y;
     return (
       <div className="imgcontrols">
         <div>
           <button onClick={this.handleDisplayClick} disabled={this.props.deleting}>Display</button>
+          x: <input value={x} onChange={this.handleXChange} size="4" />
+          y: <input value={y} onChange={this.handleYChange} size="4" />
         </div>
         <div>
           <button onClick={this.handleDeleteClick} disabled={this.props.deleting}>Delete</button>
