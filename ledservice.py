@@ -13,6 +13,14 @@ import options
 from weather import OpenWeather
 
 
+def to_int(i):
+    try:
+        i = int(i)
+    except ValueError:
+        i = 0
+    return i
+
+
 def redis_retry(ex):
     def wrap(func):
         def wrapper(*arg):
@@ -73,13 +81,17 @@ class DisplayMode(LedServiceMode):
     def images(self):
         return sorted(os.listdir(options.IMAGES_DIR))
 
-    def display_image(self, img_filename):
+    def display_image(self, img_filename, x=0, y=0):
+        x = to_int(x)
+        y = to_int(y)
+
         path = os.path.join(options.IMAGES_DIR, os.path.basename(img_filename))
         if not os.path.isfile(path):
             return False
         image = Image.open(path)
         image.load()
-        self.matrix.SetImage(image.convert('RGB'))
+        self.matrix.Clear()
+        self.matrix.SetImage(image.convert('RGB'), x, y)
         self.current_image = img_filename
 
     def next_image(self, incr):
@@ -99,7 +111,7 @@ class DisplayMode(LedServiceMode):
         if not cmd:
             self.display_image(self.images[0])
         elif cmd[0] == 'image':
-            self.display_image(cmd[1])
+            self.display_image(*cmd[1:4])
         elif cmd[0] == 'next':
             self.next_image(1)
         elif cmd[0] == 'prev':
