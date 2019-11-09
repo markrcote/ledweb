@@ -2,8 +2,11 @@
 
 import logging
 import os
+import posixpath
+from urllib.parse import urlparse
 
 import redis
+import requests
 from flask import (
     abort,
     Flask,
@@ -82,6 +85,30 @@ def delete(img_filename):
     if not os.path.exists(full_path):
         abort(404)
     os.unlink(full_path)
+    return 'ok'
+
+
+@application.route('/download', methods=['POST'])
+def download():
+    url = request.form.get('url')
+    if not url:
+        logging.error('no url')
+        abort(400)
+    filename = posixpath.basename(urlparse(url).path)
+    filename = secure_filename(filename)
+
+    if not allowed_file(filename):
+        logging.error('file not allowed')
+        abort(400)
+
+    full_path = os.path.join(application.config['UPLOAD_FOLDER'], filename)
+
+    r = requests.get(url, stream=True)
+
+    with open(full_path, 'wb') as fw:
+        for chunk in r.iter_content(chunk_size=128):
+            fw.write(chunk)
+
     return 'ok'
 
 
