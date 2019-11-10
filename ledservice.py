@@ -248,7 +248,7 @@ class TimeMode(LedServiceMode):
 
 
 class LedService:
-    LOOP_SLEEP = 0.001
+    LOOP_SLEEP = 0.1
 
     def __init__(self, matrix, redis_cli, modes):
         self.matrix = matrix
