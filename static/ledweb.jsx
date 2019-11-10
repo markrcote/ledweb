@@ -67,11 +67,11 @@ class LedWebImageControls extends React.Component {
   }
 
   handleXChange(e) {
-    this.setState({x: event.target.value});
+    this.setState({x: e.target.value});
   }
 
   handleYChange(e) {
-    this.setState({y: event.target.value});
+    this.setState({y: e.target.value});
   }
 
   render () {
