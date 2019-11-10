@@ -3,7 +3,10 @@ class LedWebControls extends React.Component {
     super(props);
     this.handleClearClick = this.handleClearClick.bind(this);
     this.handleUploadClick = this.handleUploadClick.bind(this);
+    this.handleImgUrlChange = this.handleImgUrlChange.bind(this);
+    this.handleWebFetchClick = this.handleWebFetchClick.bind(this);
     this.fileInput = React.createRef();
+    this.state = {imgUrl: ""};
   }
 
   handleClearClick(e) {
@@ -25,16 +28,43 @@ class LedWebControls extends React.Component {
       this.props.onUpload();
     })
     .catch(error => {
-      console.error(error)
+      console.error(error);
     });
   }
 
+  handleImgUrlChange(e) {
+    this.setState({imgUrl: e.target.value});
+  }
+
+  handleWebFetchClick(e) {
+    e.preventDefault();
+
+    const imgUrl = this.state.imgUrl;
+    const formData = new FormData();
+    formData.set("url", imgUrl);
+    fetch("/led/download", {
+      method: "POST",
+      body: formData
+    })
+    .catch(error => {
+      console.error(error);
+    })
+  }
+
   render () {
+    const imgUrl = this.state.imgUrl;
+
     return (
       <div className="controls">
-        <button onClick={this.handleClearClick}>Clear</button>
-        <input type="file" ref={this.fileInput} />
-        <button onClick={this.handleUploadClick}>Upload</button>
+        <div>
+          <button onClick={this.handleClearClick}>Clear</button>
+          <input type="file" ref={this.fileInput} />
+          <button onClick={this.handleUploadClick}>Upload</button>
+        </div>
+        <div>
+          Image URL: <input value={imgUrl} onChange={this.handleImgUrlChange} />
+          <button onClick={this.handleWebFetchClick}>Fetch</button>
+        </div>
       </div>
     );
   }
