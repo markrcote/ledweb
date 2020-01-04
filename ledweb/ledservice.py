@@ -10,7 +10,7 @@ from PIL import Image
 from rgbmatrix import RGBMatrix, graphics
 
 import options
-from weather import OpenWeather
+from weather.openweather import OpenWeather
 
 
 def to_int(i):
