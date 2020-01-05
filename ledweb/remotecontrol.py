@@ -3,7 +3,7 @@ from selectors import DefaultSelector, EVENT_READ
 import redis
 from evdev import InputDevice, categorize, ecodes
 
-import options
+from ledweb import options
 
 
 class RemoteControl:

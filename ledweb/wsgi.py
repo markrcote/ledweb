@@ -1,4 +1,4 @@
-from ledweb import application
+from ledweb.web import application
 
 if __name__ == '__main__':
     application.run()

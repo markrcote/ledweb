@@ -1,12 +1,15 @@
 certifi==2019.9.11
 chardet==3.0.4
 click==6.7
+evdev==1.2.0
 Flask==1.0.2
 idna==2.8
 itsdangerous==0.24
 Jinja2==2.10.1
 MarkupSafe==1.0
+Pillow==6.2.0
 redis==3.2.1
+RPi.GPIO==0.6.5
 requests==2.22.0
 urllib3==1.25.6
 uWSGI==2.0.17

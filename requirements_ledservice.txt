@@ -1,3 +1,0 @@
-Pillow==6.2.0
-redis==3.2.1
-RPi.GPIO==0.6.5

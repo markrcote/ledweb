@@ -14,7 +14,7 @@ from flask import (
 )
 from werkzeug.utils import secure_filename
 
-import options
+from ledweb import options
 
 application = Flask(__name__)
 application.config['UPLOAD_FOLDER'] = options.IMAGES_DIR

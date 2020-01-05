@@ -20,9 +20,6 @@ There are two main components and some auxiliary files:
 
 * `wsgi.py`, `ledweb.ini`: Simple NGINX WSGI server for ledweb.
 
-* `requirements_ledweb.txt`, `requirements_ledservice.txt`: Python
-  packages required for the respective services.
-
 This app depends on a newish version of Henner Zeller's [rpi-rgb-led-matrix][]
 library.  See in particular the part about building and installing
 the [Python extension][].
@@ -33,15 +30,13 @@ requirements in there.  Note that because you likely built the
 `rgbmatrix` package locally, you'll have to use the
 `--system-site-packages` argument to `virtualenv`.  You may want to
 install the rest of the requirements with `pip -I` so that it
-will not use local copies for anything else.  You may also wish to
-create separate virtualenvs for `ledweb.py` and `ledservice.py`,
-since the latter has to run as root.
+will not use local copies for anything else.
 
 Both services require access to a directory to hold images.  By
 default this is `/var/run/ledweb/`.  You'll have to create that
 directory and ensure it is readable and writeable by both services.
 
-You can run `ledweb.py` as a systemd service (e.g. for [Raspbian][])
+You can run `web.py` as a systemd service (e.g. for [Raspbian][])
 by creating a file, `/etc/systemd/system/ledweb.service`, which
 contains something like this:
 
@@ -55,8 +50,8 @@ Wants=redis.service
 User=pi
 Group=www-data
 WorkingDirectory=<path to ledweb directory>
-Environment="PATH=<path to bin/ directory of ledweb's virtualenv>"
-ExecStart=<path to bin/ directory of ledweb's virtualenv>/uwsgi --ini ledweb.ini
+Environment="PATH=<path to bin/ directory of virtualenv>"
+ExecStart=<path to bin/ directory of virtualenv>/uwsgi --ini ledweb/ledweb.ini
 
 [Install]
 WantedBy=multi-user.target
@@ -89,8 +84,8 @@ Wants=redis.service
 User=root
 Group=root
 WorkingDirectory=<path to ledweb directory>
-Environment="PATH=<path to bin/ directory of ledservice's virtualenv>"
-ExecStart==<path to bin/ directory of ledservices's virtualenv>/python ledservice.py
+Environment="PATH=<path to bin/ directory of virtualenv>"
+ExecStart==<path to bin/ directory of virtualenv>/python ledweb/ledservice.py
 
 [Install]
 WantedBy=multi-user.target

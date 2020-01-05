@@ -1,24 +1,12 @@
 #!/usr/bin/env python3
 
-import json
-import os
 import time
 
 import redis
-from PIL import Image
 
-from rgbmatrix import RGBMatrix, graphics
-
-import options
-from weather.openweather import OpenWeather
-
-
-def to_int(i):
-    try:
-        i = int(i)
-    except ValueError:
-        i = 0
-    return i
+from ledweb import options
+from ledweb.servicemode.displaymode import DisplayMode
+from ledweb.servicemode.timeweathermode import TimeWeatherMode
 
 
 def redis_retry(ex):
@@ -33,235 +21,6 @@ def redis_retry(ex):
                     time.sleep(5)
         return wrapper
     return wrap
-
-
-class LedServiceMode:
-    MODE_NAME = None
-    BACKGROUND_POLL_TIME = None
-
-    def __init__(self):
-        self.matrix = None
-        self.setup()
-        self.last_bg_poll = None
-
-    def setup(self):
-        pass
-
-    def handle_command(self, cmd):
-        return True
-
-    def iterate(self):
-        pass
-
-    def activate(self):
-        '''Called when this mode is foregrounded.'''
-        self.matrix = RGBMatrix(options=options.matrix_options())
-        self.do_activate()
-
-    def deactivate(self):
-        '''Called when this mode is removed from the foreground.'''
-        self.do_deactivate()
-        self.matrix.Clear()
-        self.matrix = None
-
-    def do_activate(self):
-        pass
-
-    def do_deactivate(self):
-        pass
-
-    def background_poll(self):
-        if self.BACKGROUND_POLL_TIME is None:
-            return
-
-        now = time.time()
-        if (not self.last_bg_poll or
-                now - self.last_bg_poll >= self.BACKGROUND_POLL_TIME):
-            self.last_bg_poll = now
-            self.background_job()
-
-    def background_job(self):
-        pass
-
-
-class DisplayMode(LedServiceMode):
-    MODE_NAME = 'display'
-
-    def setup(self):
-        self.current_image = None
-
-    @property
-    def images(self):
-        return sorted(os.listdir(options.IMAGES_DIR))
-
-    def display_image(self, img_filename, x=0, y=0):
-        # We want x and y to be the location in the image that is mapped to
-        # the top left of the panel.  This means offsetting by the negative
-        # values of x and y.
-        x = to_int(x) * -1
-        y = to_int(y) * -1
-
-        path = os.path.join(options.IMAGES_DIR, os.path.basename(img_filename))
-        if not os.path.isfile(path):
-            return False
-        image = Image.open(path)
-        image.load()
-        self.matrix.Clear()
-        self.matrix.SetImage(image.convert('RGB'), x, y)
-        self.current_image = img_filename
-
-    def next_image(self, incr):
-        cur_images = self.images
-        try:
-            next_image = cur_images[
-                (cur_images.index(self.current_image) + incr)
-                % len(cur_images)
-            ]
-        except ValueError:
-            next_image = cur_images[0]
-        self.display_image(next_image)
-
-    def handle_command(self, cmd):
-        if not self.images:
-            return
-        if not cmd:
-            self.display_image(self.images[0])
-        elif cmd[0] == 'image':
-            self.display_image(*cmd[1:4])
-        elif cmd[0] == 'next':
-            self.next_image(1)
-        elif cmd[0] == 'prev':
-            self.next_image(-1)
-        return True
-
-
-class TimeMode(LedServiceMode):
-    # Adapted from https://github.com/hzeller/rpi-rgb-led-matrix/blob/master/examples-api-use/clock.cc.
-
-    MODE_NAME = 'time'
-    BACKGROUND_POLL_TIME = 60
-    WEATHER_POLL_SECONDS = 60*10
-
-    SCREEN_CURRENT = 0
-
-    SCREENS = [
-        SCREEN_CURRENT
-    ]
-
-    def setup(self):
-        self.offscreen = None
-        self.font = graphics.Font()
-        self.font.LoadFont('fonts/5x7.bdf')
-        self.text_colour = graphics.Color(0, 255, 255)
-
-        self.weather = OpenWeather(
-            options.OPEN_WEATHER_API_KEY,
-            options.OPEN_WEATHER_CITY_ID
-        )
-        self.next_time = time.time()
-        self.next_weather = time.time()
-        self.screen = self.SCREEN_CURRENT
-
-    def background_job(self):
-        if time.time() < self.next_weather:
-            return
-
-        self.next_weather += self.WEATHER_POLL_SECONDS
-
-        self.weather.get_weather()
-
-    def prepare_current_offscreen(self):
-        t = time.localtime(self.next_time)
-        ts = time.strftime('%I:%M %p', t)
-        if ts[0].startswith('0'):
-            ts = ' {}'.format(ts[1:])
-        month_day = time.strftime('%a %e %b')
-
-        self.offscreen.Clear()
-        graphics.DrawText(
-            self.offscreen,
-            self.font,
-            0,
-            self.font.baseline + 3,
-            self.text_colour,
-            ts
-        )
-
-        graphics.DrawText(
-            self.offscreen,
-            self.font,
-            0,
-            self.font.baseline * 2 + 6,
-            self.text_colour,
-            month_day
-        )
-
-        if self.weather.weather:
-            temps = '{}°'.format(self.weather.current_temp())
-
-            graphics.DrawText(
-                self.offscreen,
-                self.font,
-                44,
-                28,
-                self.text_colour,
-                temps
-            )
-
-            weather_icon = self.weather.current_weather_icon()
-
-            if weather_icon:
-                icon_path = os.path.join(
-                    os.path.dirname(__file__),
-                    'icons',
-                    '{}.json'.format(weather_icon)
-                )
-
-                if os.path.exists(icon_path):
-                    icon = json.loads(open(icon_path).read())
-                    for pixel in icon:
-                        self.offscreen.SetPixel(
-                            pixel[0] + 32,
-                            pixel[1] + 20,
-                            *pixel[2:]
-                        )
-
-    def iterate(self):
-        '''Refreshes time.
-
-        Weather refreshing is handled by the background job.
-        '''
-        now = time.time()
-
-        if now < self.next_time:
-            return
-
-        self.offscreen = self.matrix.SwapOnVSync(self.offscreen)
-        self.next_time += 1
-        self.prepare_offscreen()
-
-    def prepare_offscreen(self):
-        if self.screen == self.SCREEN_CURRENT:
-            self.prepare_current_offscreen()
-
-    def do_activate(self):
-        self.offscreen = self.matrix.CreateFrameCanvas()
-        self.next_time = time.time()
-        self.prepare_offscreen()
-
-    def do_deactivate(self):
-        self.offscreen = None
-
-    def handle_command(self, cmd):
-        if not cmd:
-            return True
-        elif cmd[0] == 'next':
-            self.screen += 1
-        elif cmd[0] == 'prev':
-            self.screen -= 1
-        self.screen %= len(self.SCREENS)
-        self.prepare_offscreen()
-        return True
 
 
 class LedService:
@@ -331,7 +90,7 @@ class LedService:
 
 def main():
     redis_cli = redis.from_url(options.REDIS_URL)
-    modes = [DisplayMode, TimeMode]
+    modes = [DisplayMode, TimeWeatherMode]
     led_service = LedService(redis_cli, modes)
     led_service.loop()
 
