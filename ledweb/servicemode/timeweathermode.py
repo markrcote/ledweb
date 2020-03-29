@@ -89,6 +89,7 @@ class TimeWeatherMode(LedServiceMode):
             if weather_icon:
                 icon_path = os.path.join(
                     os.path.dirname(__file__),
+                    '..',
                     'icons',
                     '{}.json'.format(weather_icon)
                 )
@@ -101,6 +102,8 @@ class TimeWeatherMode(LedServiceMode):
                             pixel[1] + 20,
                             *pixel[2:]
                         )
+                else:
+                    print('icon file {} not found'.format(icon_path))
 
     def iterate(self):
         '''Refreshes time.
