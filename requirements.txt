@@ -7,7 +7,7 @@ idna==2.8
 itsdangerous==0.24
 Jinja2==2.10.1
 MarkupSafe==1.0
-Pillow==6.2.0
+Pillow==6.2.2
 redis==3.2.1
 RPi.GPIO==0.6.5
 requests==2.22.0
