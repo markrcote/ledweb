@@ -6,6 +6,7 @@ import redis
 
 from ledweb import options
 from ledweb.servicemode.displaymode import DisplayMode
+from ledweb.servicemode.drawmode import DrawMode
 from ledweb.servicemode.timeweathermode import TimeWeatherMode
 
 
@@ -90,7 +91,7 @@ class LedService:
 
 def main():
     redis_cli = redis.from_url(options.REDIS_URL)
-    modes = [DisplayMode, TimeWeatherMode]
+    modes = [DisplayMode, TimeWeatherMode, DrawMode]
     led_service = LedService(redis_cli, modes)
     led_service.loop()
 
