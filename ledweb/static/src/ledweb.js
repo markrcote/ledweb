@@ -1,3 +1,6 @@
+import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+
 class LedWebControls extends React.Component {
   constructor(props) {
     super(props);
@@ -122,7 +125,39 @@ class LedWebImageControls extends React.Component {
   }
 }
 
-class LedWebImage extends React.Component {
+function LedWebImage(props) {
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    if (deleting) {
+      fetch("/led/delete/" + props.filename, { method: "POST" })
+      .then(
+        (result) => {
+          if (result.ok) {
+            props.onDelete(props.filename);
+          } else {
+            console.log("error deleting: " + result.status);
+          }
+        },
+        (error) => {
+          console.log("failed to delete: " + error);
+        }
+      );  
+    }
+  });
+
+  return (
+    <div className="image deleting">
+      <img src={"/image/" + props.filename} />
+      <LedWebImageControls
+        filename={props.filename}
+        deleting={deleting}
+        onDelete={() => setDeleting(true)} />
+    </div>
+  );
+}
+
+class LedWebImageFoo extends React.Component {
   constructor(props) {
     super(props);
     this.handleDelete = this.handleDelete.bind(this);
@@ -133,19 +168,6 @@ class LedWebImage extends React.Component {
 
   handleDelete() {
     this.setState({deleting: true});
-    fetch("/led/delete/" + this.props.filename, { method: "POST" })
-    .then(
-      (result) => {
-        if (result.ok) {
-          this.props.onDelete(this.props.filename);
-        } else {
-          console.log("error deleting: " + result.status);
-        }
-      },
-      (error) => {
-        console.log("failed to delete: " + error);
-      }
-    );
   }
 
   render() {
