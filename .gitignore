@@ -1,2 +1,5 @@
 *.pyc
 ledweb.sock
+ledweb.egg-info/
+ledweb/static/dist/
+ledweb/static/node_modules/
