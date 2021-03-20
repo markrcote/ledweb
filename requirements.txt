@@ -7,7 +7,7 @@ flake8==3.7.9
 Flask==1.0.2
 idna==2.8
 itsdangerous==0.24
-Jinja2==2.10.1
+Jinja2==2.11.3
 -e git+https://github.com/markrcote/ledweb.git@7d2c827d578e62da12c9da64baa3bed33b8f6b7d#egg=ledweb
 MarkupSafe==1.0
 mccabe==0.6.1
