@@ -20,6 +20,6 @@ redis==3.2.1
 requests==2.22.0
 rgbmatrix==0.0.1
 RPi.GPIO==0.6.5
-urllib3==1.25.8
+urllib3==1.26.5
 uWSGI==2.0.17
 Werkzeug==0.15.3
