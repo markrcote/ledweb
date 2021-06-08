@@ -11,7 +11,7 @@ Jinja2==2.11.3
 -e git+https://github.com/markrcote/ledweb.git@7d2c827d578e62da12c9da64baa3bed33b8f6b7d#egg=ledweb
 MarkupSafe==1.0
 mccabe==0.6.1
-Pillow==8.1.1
+Pillow==8.2.0
 pkg-resources==0.0.0
 pycodestyle==2.5.0
 pyflakes==2.1.1
